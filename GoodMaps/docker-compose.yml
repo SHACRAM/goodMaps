@@ -1,0 +1,42 @@
+version: '3.9'
+
+services:
+  # ── Frontend ──────────────────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - db
+    environment:
+      - VITE_API_URL=http://api:3000
+
+  # ── Optional API backend (Node/Express + Postgres) ───────────────────────
+  # api:
+  #   build:
+  #     context: ./server
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     DATABASE_URL: postgres://goodmaps:secret@db:5432/goodmaps
+  #   depends_on:
+  #     - db
+
+  # ── PostgreSQL ────────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: goodmaps
+      POSTGRES_USER: goodmaps
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./server/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:
