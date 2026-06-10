@@ -1,11 +1,42 @@
-<script setup lang="ts"></script>
-
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <div class="app-shell">
+    <RouterView v-slot="{ Component, route }">
+      <Transition :name="route.meta.transition || 'fade'" mode="out-in">
+        <component :is="Component" :key="route.name" />
+      </Transition>
+    </RouterView>
+    <Toast position="top-center" />
+  </div>
 </template>
 
-<style scoped></style>
+<script setup>
+import { RouterView } from 'vue-router'
+import Toast from 'primevue/toast'
+import { useI18n } from 'vue-i18n'
+import { usePreferencesStore } from '@/stores/preferences'
+import { watch } from 'vue'
+
+const { locale } = useI18n()
+const prefs = usePreferencesStore()
+
+// Sync i18n locale with preferences
+watch(() => prefs.language, (lang) => {
+  locale.value = lang
+}, { immediate: true })
+
+// Listen for system theme changes
+if (prefs.theme === 'system') {
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    prefs.applyTheme()
+  })
+}
+</script>
+
+<style scoped>
+.app-shell {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+</style>
